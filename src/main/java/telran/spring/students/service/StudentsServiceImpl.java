@@ -1,5 +1,8 @@
 package telran.spring.students.service;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -11,11 +14,12 @@ import telran.spring.exceptions.NotFoundException;
 import telran.spring.students.docs.StudentDoc;
 import telran.spring.students.dto.Mark;
 import telran.spring.students.dto.Student;
+import telran.spring.students.dto.SubjectMark;
 import telran.spring.students.repo.StudentRepository;
 @RequiredArgsConstructor
 @Slf4j
 @Service
-public class StudentsServiceImpl implements StudentsService {
+public  class StudentsServiceImpl implements StudentsService {
 	final StudentRepository studentRepo;
 	@Override
 	@Transactional(readOnly = false)
@@ -39,6 +43,29 @@ public class StudentsServiceImpl implements StudentsService {
 		studentRepo.save(studentDoc);
 		
 
+	}
+
+	@Override
+	public List<Mark> getMarksStudentSubject(long studentId, String subject) {
+		List<Mark> res = Collections.emptyList();
+		SubjectMark allMarks = studentRepo.findByIdAndMarksSubjectEquals(studentId, subject);
+		if(allMarks != null) {
+			res = allMarks.getMarks().stream().filter(m -> m.subject().equals(subject)).toList();
+		}
+		return res;
+	}
+
+	@Override
+	public List<Mark> getMarksStudentDates(long studentId, LocalDate date1, LocalDate date2) {
+		List<Mark> res = Collections.emptyList();
+		SubjectMark allMarks = studentRepo.findByIdAndMarksDateBetween(studentId, date1, date2);
+		if(allMarks != null) {
+			res = allMarks.getMarks().stream().filter(m -> {
+				LocalDate date = m.date();
+				return date.compareTo(date1) >= 0 && date.compareTo(date2) <= 0;
+			}).toList();
+		}
+		return res;
 	}
 
 }

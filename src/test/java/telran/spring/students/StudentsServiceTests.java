@@ -3,18 +3,19 @@ package telran.spring.students;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.time.LocalDate;
+import java.util.List;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import static telran.spring.students.TestDbCreation.*;
 
-import telran.spring.students.docs.StudentDoc;
 import telran.spring.students.dto.Mark;
-import telran.spring.students.dto.Student;
-import telran.spring.students.repo.StudentRepository;
+import telran.spring.students.dto.SubjectMark;
 import telran.spring.students.service.StudentsService;
 
 @SpringBootTest
@@ -23,22 +24,30 @@ class StudentsServiceTests {
 	@Autowired
 	StudentsService studentsService;
 	@Autowired
-	StudentRepository studentRepo;
-    Student student1 = new Student(123l, "Vasya", "050-1234567");
-    Mark mark = new Mark("Java", LocalDate.now(), 90);
+	TestDbCreation testDbCreation;
+	@BeforeEach
+	void setUp() {
+		testDbCreation.createDb();
+	}
 	@Test
-	@Order(1)
-	void creationDb() {
-		assertEquals(student1, studentsService.addStudent(student1));
-		studentsService.addMark(123l, mark);
+	void studentSubjectMarksTest() {
+		List<Mark> marks =  studentsService.getMarksStudentSubject(ID1, SUBJECT1);
+	
+		assertEquals(2, marks.size());
+		
+		assertEquals(80, marks.get(0).score());
+		assertEquals(90, marks.get(1).score());
+		
 		
 	}
 	@Test
-	@Order(2)
-	void readTest() {
-		StudentDoc studentDoc = studentRepo.findById(123l).get();
-		assertEquals(student1, studentDoc.build());
-		assertEquals(mark, studentDoc.getMarks().get(0));
+	void studentDatesMarksTest() {
+		List<Mark> marks = studentsService.getMarksStudentDates(ID1, DATE2, DATE3);
+		assertEquals(2, marks.size());
+		assertEquals(70, marks.get(0).score());
+		assertEquals(90, marks.get(1).score());
+		marks = studentsService.getMarksStudentDates(ID4, DATE2, DATE3);
+		assertTrue(marks.isEmpty());
 	}
 
 }

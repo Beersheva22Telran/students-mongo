@@ -13,14 +13,21 @@ import telran.spring.students.dto.Student;
 @Data
 public class StudentDoc {
  
+	public StudentDoc(long id, String name, String phone, List<Mark> marks) {
+		super();
+		this.id = id;
+		this.name = name;
+		this.phone = phone;
+		this.marks = marks;
+	}
 	final long id;
-  @NonNull
+ 
   String name;
-  @NonNull
+  
   String phone;
   List<Mark> marks = new ArrayList<>();
   public static  StudentDoc of(Student student) {
-	  return new StudentDoc(student.id(), student.name(), student.phone());
+	  return new StudentDoc(student.id(), student.name(), student.phone(), null);
   }
   public Student build() {
 	  return new Student(id, name, phone);
