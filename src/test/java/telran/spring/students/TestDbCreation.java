@@ -88,4 +88,8 @@ public class TestDbCreation {
 		res.setMarks(new ArrayList<>(List.of(marks[index])));
 		return res;
 	}
+	double getAvgMark() {
+		//TODO
+		return 0;
+	}
 }

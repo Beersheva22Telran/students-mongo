@@ -1,10 +1,13 @@
 package telran.spring.students.service;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.bson.Document;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.*;
+import static org.springframework.data.mongodb.core.aggregation.Aggregation.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,16 +15,15 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import telran.spring.exceptions.NotFoundException;
 import telran.spring.students.docs.StudentDoc;
-import telran.spring.students.dto.IdName;
-import telran.spring.students.dto.Mark;
-import telran.spring.students.dto.Student;
-import telran.spring.students.dto.SubjectMark;
+import telran.spring.students.dto.*;
+
 import telran.spring.students.repo.StudentRepository;
 @RequiredArgsConstructor
 @Slf4j
 @Service
 public  class StudentsServiceImpl implements StudentsService {
 	final StudentRepository studentRepo;
+	final MongoTemplate mongoTemplate;
 	@Override
 	@Transactional(readOnly = false)
 	public Student addStudent(Student student) {
@@ -85,6 +87,22 @@ public  class StudentsServiceImpl implements StudentsService {
 	public List<Long> removeStudentsWithFewMarks(int nMarks) {
 		List<StudentDoc> studentsRemoved = studentRepo.removeStudentsFewMarks(nMarks);
 		return studentsRemoved.stream().map(StudentDoc::getId).toList();
+	}
+
+	@Override
+	public double getStudentsAvgScore() {
+		UnwindOperation unwindOperation = unwind("marks");
+		GroupOperation groupOperation = group().avg("marks.score").as("avgScore");
+		Aggregation pipeLine = newAggregation(List.of(unwindOperation, groupOperation));
+		var aggregationResult = mongoTemplate.aggregate(pipeLine, StudentDoc.class,Document.class);
+		double res = aggregationResult.getUniqueMappedResult().getDouble("avgScore");
+		return res;
+	}
+
+	@Override
+	public List<IdName> getGoodStudents() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }
