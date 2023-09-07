@@ -30,6 +30,7 @@ class StudentsServiceTests {
 	TestDbCreation testDbCreation;
 	@Autowired
 	StudentRepository studentRepo;
+	
 	@BeforeEach
 	void setUp() {
 		testDbCreation.createDb();
@@ -82,6 +83,24 @@ class StudentsServiceTests {
 		assertEquals(ID6, ids.get(1));
 		assertNull(studentRepo.findById(ID4).orElse(null));
 		assertNull(studentRepo.findById(ID6).orElse(null));
+	}
+	@Test
+	void getAvgMarkTest() {
+		assertEquals(testDbCreation.getAvgMark(), studentsService.getStudentsAvgScore(), 0.1);
+	}
+	@Test
+	void getStudentsAvgMarkeGreaterTest() {
+		List<IdName> idNamesGood = studentsService.getGoodStudents();
+		List<IdName> idNamesGreater = studentsService.getStudentsAvgMarkGreater(75);
+		assertEquals(3, idNamesGood.size());
+		assertEquals(ID3, idNamesGood.get(0).getId());
+		idNamesGood.forEach(in -> assertTrue(testDbCreation.getAvgMarkStudent(in.getId()) > 75));
+		assertEquals("name3", idNamesGood.get(0).getName());
+		assertEquals(ID1, idNamesGood.get(1).getId());
+		assertEquals("name1", idNamesGood.get(1).getName());
+		assertEquals(ID5, idNamesGood.get(2).getId());
+		assertEquals("name5", idNamesGood.get(2).getName());
+		assertEquals(idNamesGood.size(), idNamesGreater.size());
 	}
 
 }

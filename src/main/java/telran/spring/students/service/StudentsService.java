@@ -15,7 +15,8 @@ public interface StudentsService {
 	List<IdName> getSudentsAllScoresGreater(int score);
 	List<Long> removeStudentsWithFewMarks(int nMarks);
 	double getStudentsAvgScore();
-	List<IdName> getGoodStudents(); //students having avg scores greater than the avg score for all students
+	List<IdName> getGoodStudents(); //students having avg scores greater than the good mark threshold
+	List<IdName> getStudentsAvgMarkGreater(int score);
 	
 	
 }

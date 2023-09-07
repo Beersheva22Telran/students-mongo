@@ -2,7 +2,9 @@ package telran.spring.students;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.springframework.stereotype.Component;
@@ -89,7 +91,10 @@ public class TestDbCreation {
 		return res;
 	}
 	double getAvgMark() {
-		//TODO
-		return 0;
+		
+		return Arrays.stream(marks).flatMap(Arrays::stream).collect(Collectors.averagingInt(Mark::score));
+	}
+	double getAvgMarkStudent(long id) {
+		return Arrays.stream(marks[(int)id - 123]).collect(Collectors.averagingInt(Mark::score));
 	}
 }

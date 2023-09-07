@@ -20,6 +20,7 @@ public class StudentDoc {
 		this.phone = phone;
 		this.marks = marks;
 	}
+	
 	final long id;
  
   String name;

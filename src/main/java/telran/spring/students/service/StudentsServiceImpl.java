@@ -5,8 +5,12 @@ import java.util.Collections;
 import java.util.List;
 
 import org.bson.Document;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.*;
+import org.springframework.data.mongodb.core.query.Criteria;
+
 import static org.springframework.data.mongodb.core.aggregation.Aggregation.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,8 +26,12 @@ import telran.spring.students.repo.StudentRepository;
 @Slf4j
 @Service
 public  class StudentsServiceImpl implements StudentsService {
+	
+	private static final String AVG_SCORE_FIELD = "avgScore";
 	final StudentRepository studentRepo;
 	final MongoTemplate mongoTemplate;
+	@Value("${app.students.mark.good:80}")
+	int goodMark;
 	@Override
 	@Transactional(readOnly = false)
 	public Student addStudent(Student student) {
@@ -92,17 +100,46 @@ public  class StudentsServiceImpl implements StudentsService {
 	@Override
 	public double getStudentsAvgScore() {
 		UnwindOperation unwindOperation = unwind("marks");
-		GroupOperation groupOperation = group().avg("marks.score").as("avgScore");
+		GroupOperation groupOperation = group().avg("marks.score").as(AVG_SCORE_FIELD);
 		Aggregation pipeLine = newAggregation(List.of(unwindOperation, groupOperation));
 		var aggregationResult = mongoTemplate.aggregate(pipeLine, StudentDoc.class,Document.class);
-		double res = aggregationResult.getUniqueMappedResult().getDouble("avgScore");
+		double res = aggregationResult.getUniqueMappedResult().getDouble(AVG_SCORE_FIELD);
 		return res;
 	}
 
 	@Override
 	public List<IdName> getGoodStudents() {
-		// TODO Auto-generated method stub
-		return null;
+		log.debug("good mark threshold is {} ", goodMark);
+		return getStudentsAvgMarkGreater(goodMark);
+	}
+	@Override
+	public List<IdName> getStudentsAvgMarkGreater(int score) {
+		UnwindOperation unwindOperation = unwind("marks");
+		GroupOperation groupOperation = group("id","name").avg("marks.score").as(AVG_SCORE_FIELD);
+		MatchOperation matchOperation = match(Criteria.where(AVG_SCORE_FIELD).gt(score));
+		SortOperation sortOperation = sort(Direction.DESC, AVG_SCORE_FIELD);
+		ProjectionOperation projectionOperation = project().andExclude(AVG_SCORE_FIELD);
+		Aggregation pipeLine = newAggregation(List.of(unwindOperation, groupOperation, matchOperation
+				,sortOperation,projectionOperation));
+		var aggregationResult = mongoTemplate.aggregate(pipeLine, StudentDoc.class,Document.class);
+		List<Document> resultDocuments = aggregationResult.getMappedResults();
+		return resultDocuments.stream().map(this::toIdName).toList();
+	}
+	IdName toIdName(Document document) {
+		return new IdName() {
+			Document idDocument = document.get("_id", Document.class);
+			@Override
+			public String getName() {
+				
+				return idDocument.getString("name");
+			}
+			
+			@Override
+			public long getId() {
+				
+				return idDocument.getLong("id");
+			}
+		};
 	}
 
 }
