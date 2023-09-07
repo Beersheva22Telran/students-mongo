@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.*;
+import org.springframework.data.mongodb.core.query.BasicQuery;
 import org.springframework.data.mongodb.core.query.Criteria;
 
 import static org.springframework.data.mongodb.core.aggregation.Aggregation.*;
@@ -80,9 +81,9 @@ public  class StudentsServiceImpl implements StudentsService {
 	}
 
 	@Override
-	public List<StudentDoc> getStudentsPhonePrefix(String phonePrefix) {
+	public List<Student> getStudentsPhonePrefix(String phonePrefix) {
 		
-		return studentRepo.findStudentsPhonePrefix(phonePrefix);
+		return studentRepo.findStudentsPhonePrefix(phonePrefix).stream().map(StudentDoc::build).toList();
 	}
 
 	@Override
@@ -140,6 +141,61 @@ public  class StudentsServiceImpl implements StudentsService {
 				return idDocument.getLong("id");
 			}
 		};
+	}
+
+	@Override
+	public List<IdNameMarks> findStudents(String jsonQuery) {
+		BasicQuery query = new BasicQuery(jsonQuery);
+		List<StudentDoc> students = mongoTemplate.find(query, StudentDoc.class);
+		
+		return students.stream().map(this::toIdNameMarks).toList();
+	}
+	IdNameMarks toIdNameMarks(StudentDoc studentDoc) {
+		return new IdNameMarks() {
+			
+			@Override
+			public String getName() {
+				
+				return studentDoc.getName();
+			}
+			
+			@Override
+			public long getId() {
+				
+				return studentDoc.getId();
+			}
+			
+			@Override
+			public List<Mark> getMarks() {
+				
+				return studentDoc.getMarks();
+			}
+		};
+	}
+
+	@Override
+	public List<IdNameMarks> getBestStudents(int nStudents) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<IdNameMarks> getWorstStudents(int nStudents) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<IdNameMarks> getBestStudentsSubject(int nStudents, String subject) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<MarksBucket> scoresDistribution(int nBuckets) {
+		// TODO Auto-generated method stub
+		//BucketAutoOperation bucketOperation = bucketAuto("marks.score", nBuckets);
+		return null;
 	}
 
 }

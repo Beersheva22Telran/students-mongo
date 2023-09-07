@@ -16,7 +16,9 @@ import static telran.spring.students.TestDbCreation.*;
 
 import telran.spring.students.docs.StudentDoc;
 import telran.spring.students.dto.IdName;
+import telran.spring.students.dto.IdNameMarks;
 import telran.spring.students.dto.Mark;
+import telran.spring.students.dto.Student;
 import telran.spring.students.dto.SubjectMark;
 import telran.spring.students.repo.StudentRepository;
 import telran.spring.students.service.StudentsService;
@@ -57,12 +59,11 @@ class StudentsServiceTests {
 	}
 	@Test
 	void studentsPhonePrefixTest() {
-		List<StudentDoc> students = studentsService.getStudentsPhonePrefix("050");
+		List<Student> students = studentsService.getStudentsPhonePrefix("050");
 		assertEquals(3, students.size());
-		StudentDoc student2 = students.get(0);
-		assertNull(student2.getMarks());
-		assertEquals(ID2, student2.getId());
-		students.forEach(s -> assertTrue(s.getPhone().startsWith("050")));
+		Student student2 = students.get(0);
+		assertEquals(ID2, student2.id());
+		students.forEach(s -> assertTrue(s.phone().startsWith("050")));
 	}
 	@Test
 	void studentsAllMarksGreaterTest() {
@@ -101,6 +102,15 @@ class StudentsServiceTests {
 		assertEquals(ID5, idNamesGood.get(2).getId());
 		assertEquals("name5", idNamesGood.get(2).getName());
 		assertEquals(idNamesGood.size(), idNamesGreater.size());
+	}
+	@Test
+	void findQueryTest() {
+		List<IdNameMarks> actualRes = studentsService.findStudents("{phone:{$regex:/^050/}}");
+		List<Student> expectedRes = studentsService.getStudentsPhonePrefix("050");
+		assertEquals(expectedRes.size(), actualRes.size());
+		IdNameMarks actual1 = actualRes.get(0);
+		Student expected1 = expectedRes.get(0);
+		assertEquals(expected1.id(), actual1.getId());
 	}
 
 }
